@@ -1,0 +1,10 @@
+# Project Specific
+secrets.txt
+test.py
+
+# Python Files
+venv/
+
+# Slurm Related Files
+logs/
+script.sh
