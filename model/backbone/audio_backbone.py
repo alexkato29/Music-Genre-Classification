@@ -9,8 +9,8 @@ class AudioNet(nn.Module):
         self.pool = nn.MaxPool1d(4)
         self.conv2 = nn.Conv1d(16, 32, kernel_size=32, stride=8)
         self.bn2 = nn.BatchNorm1d(32)
-        self.fc1 = nn.Linear(32 * 62, 64)
-        self.fc2 = nn.Linear(64, num_classes)
+        self.fc1 = nn.Linear(32 * 322, 256)
+        self.fc2 = nn.Linear(256, num_classes)
 
     def forward(self, x):
         x = self.pool(F.relu(self.bn1(self.conv1(x))))
