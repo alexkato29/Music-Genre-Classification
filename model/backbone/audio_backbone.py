@@ -13,14 +13,9 @@ class AudioNet(nn.Module):
         self.fc2 = nn.Linear(64, num_classes)
 
     def forward(self, x):
-        x = x.mean(dim=1)  # Assuming stereo to mono
         x = self.pool(F.relu(self.bn1(self.conv1(x))))
         x = self.pool(F.relu(self.bn2(self.conv2(x))))
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-
-    @staticmethod
-    def test_import():
-        return 256

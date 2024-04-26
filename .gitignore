@@ -4,6 +4,7 @@ ProtoPNet/
 
 # Python Files
 venv/
+__pycache__/
 
 # Slurm Related Files
 logs/
