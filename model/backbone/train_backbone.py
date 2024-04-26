@@ -1,4 +1,8 @@
 import os
+import time
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
@@ -58,11 +62,15 @@ train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=False) 
 
+
+# Load the data onto the GPU and initialize training params
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AudioNet(num_classes=len(GENRES)).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
+
+# Accuracy function for validation set 
 def accuracy(outputs, labels):
     _, predicted = torch.max(outputs.data, 1)
     total = labels.size(0)
@@ -70,10 +78,17 @@ def accuracy(outputs, labels):
     return 100 * correct / total
 
 # Training Code
-num_epochs = 10
-best_val_acc = 0
+train_losses = []
+val_losses = []
+val_accuracies = []
+val_acc_avg_5_epochs = []  
+
+num_epochs = 30
+best_val_acc_avg = 0
+
 for epoch in range(num_epochs):
     print(f"Now Training Epoch {epoch+1}", flush=True)
+    start = time.time()
 
     # Training Loop
     model.train()
@@ -86,28 +101,45 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-
-    # Calculate average training loss for the epoch
-    train_loss /= len(train_dataloader)
+    train_losses.append(train_loss / len(train_dataloader))
 
     # Validation Loop
     model.eval()
     val_loss = 0
     val_accuracy = 0
-    with torch.no_grad():  # Turn off gradients for validation, saves memory and computations
+    with torch.no_grad():
         for i, (inputs, labels) in enumerate(val_dataloader):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             val_loss += loss.item()
             val_accuracy += accuracy(outputs, labels)
+    val_losses.append(val_loss / len(val_dataloader))
+    val_accuracies.append(val_accuracy / len(val_dataloader))
 
-    # Calculate average loss and accuracy over all validation batches
-    val_loss /= len(val_dataloader)
-    val_accuracy /= len(val_dataloader)
+    # Calculate the moving average over the last 5 epochs for validation accuracy
+    if len(val_accuracies) >= 5:
+        mean_val_acc = np.mean(val_accuracies[-5:])
+        val_acc_avg_5_epochs.append(mean_val_acc)
+    else:
+        val_acc_avg_5_epochs.append(val_accuracies[-1])  # Use the current accuracy if <5 epochs have completed
 
-    print(f'\tEpoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.2f}%', flush=True)
+    end = time.time()
+
+    print(f'\tEpoch {epoch+1}/{num_epochs}, Train Loss: {train_losses[-1]:.4f}, Val Loss: {val_losses[-1]:.4f}, Val Acc: {val_accuracies[-1]:.2f}%, Moving Avg Val Acc: {val_acc_avg_5_epochs[-1]:.2f}%, Time: {end-start:.2f}s', flush=True)
     
-    # Save Condition
-    if val_accuracy > best_val_acc:
+    # Save Condition based on moving average
+    if len(val_accuracies) >= 5 and val_acc_avg_5_epochs[-1] > best_val_acc_avg:
         torch.save(model.state_dict(), 'best_backbone.pth')
+        best_val_acc_avg = val_acc_avg_5_epochs[-1]
+        print("Saved new best model based on moving average validation accuracy", flush=True)
+
+# Plotting and saving the graph
+plt.figure(figsize=(12, 6))
+plt.plot(train_losses, label='Training Loss')
+plt.plot(val_losses, label='Validation Loss')
+plt.title('Training and Validation Losses')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.savefig('training.png')
