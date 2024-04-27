@@ -6,11 +6,11 @@ import soundfile as sf
 
 GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
 
-def pitch_shift(audio_path, save_path, file, n_steps):
+def pitch(audio_path, save_path, file, n_semitones):
     y, sr = librosa.load(audio_path, sr=None) 
 
-    # Go ±semitones
-    for semitone in range(-n_steps, n_steps + 1):
+    # Go +/- semitones
+    for semitone in range(-n_semitones, n_semitones + 1):
         # We copy the original files over, so no need to recopy
         if semitone == 0:
             continue
@@ -19,9 +19,9 @@ def pitch_shift(audio_path, save_path, file, n_steps):
         if semitone > 0:
             aug_file_path = os.path.join(save_path, f"up_{semitone}_{file}")
         else:
-            aug_file_path = os.path.join(save_path, f"down_{semitone * -1}_{file}")
+            aug_file_path = os.path.join(save_path, f"down_{abs(semitone)}_{file}")
 
-        y_shifted = librosa.effects.pitch_shift(y, sr, semitone)
+        y_shifted = librosa.effects.pitch_shift(y, sr=sr, n_steps=semitone)
         sf.write(aug_file_path, y_shifted, sr)
 
 
@@ -40,7 +40,8 @@ def quiet(audio_path, save_path, file, quiet_factor):
     sf.write(noisy_file_path, y_quiet, sr)
 
 
-def augment_training_data(train_dir, aug_dir, semitones):
+
+def augment_training_data(train_dir, aug_dir):
     for genre in GENRES:
         genre_dir = os.path.join(train_dir, genre)
         aug_genre_dir = os.path.join(aug_dir, genre)
@@ -49,12 +50,13 @@ def augment_training_data(train_dir, aug_dir, semitones):
         for file in os.listdir(genre_dir):
             if file.endswith('.wav'):
                 file_path = os.path.join(genre_dir, file)
-                pitch_shift(file_path, aug_genre_dir, file, semitones)
-                add_white_noise(file_path, aug_genre_dir, file, noise_level=0.05)
-                quiet(file_path, aug_genre_dir, file, quiet_factor=0.8)
+                pitch(file_path, aug_genre_dir, file, n_semitones=2)
+                add_white_noise(file_path, aug_genre_dir, file, noise_level=0.005)
+                quiet(file_path, aug_genre_dir, file, quiet_factor=0.4)
+        print(f"{genre} genre complete")
 
 # Example usage
 DATA_PATH = '/usr/xtmp/aak61/music-genre/split_genres/push/'
 AUG_PATH = '/usr/xtmp/aak61/music-genre/split_genres/train_augmented/'
-augment_training_data(DATA_PATH, AUG_PATH, semitones=2)
+augment_training_data(DATA_PATH, AUG_PATH)
 
