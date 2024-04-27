@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Probably want to make this end in 1 FC layer
 class AudioNet(nn.Module):
     def __init__(self, num_classes):
         super(AudioNet, self).__init__()

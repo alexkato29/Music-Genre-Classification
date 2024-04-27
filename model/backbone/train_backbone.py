@@ -9,12 +9,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.dataset import random_split
+from torch.optim.lr_scheduler import ExponentialLR
 
 import torchaudio
 
 from audio_backbone import AudioNet
 
-DATA_PATH = '/usr/xtmp/aak61/music-genre/genres_original'
+TRAIN_PATH = '/usr/xtmp/aak61/music-genre/split_genres/train_augmented'
+VAL_PATH = '/usr/xtmp/aak61/music-genre/split_genres/val'
 GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
 
 if torch.cuda.is_available():
@@ -51,41 +53,34 @@ class RawAudioDataset(Dataset):
         
         return waveform, self.labels[idx]
 
-dataset = RawAudioDataset(DATA_PATH, GENRES)
-
-# Make a training and val set
-total_size = len(dataset)
-train_size = int(total_size * 0.8)  # 80% for training
-val_size = total_size - train_size  # 20% for validation
-train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+train_dataset = RawAudioDataset(TRAIN_PATH, GENRES)
+val_dataset = RawAudioDataset(VAL_PATH, GENRES)
 
 train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=False) 
 
-
-# Load the data onto the GPU and initialize training params
+# Assuming model, train_dataloader, and val_dataloader are already defined
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AudioNet(num_classes=len(GENRES)).to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
+scheduler = ExponentialLR(optimizer, gamma=0.95)
 
-
-# Accuracy function for validation set 
+# Define accuracy calculation
 def accuracy(outputs, labels):
     _, predicted = torch.max(outputs.data, 1)
     total = labels.size(0)
     correct = (predicted == labels).sum().item()
     return 100 * correct / total
 
-# Training Code
+# Initialize storage for epoch data
 train_losses = []
 val_losses = []
 val_accuracies = []
 val_acc_avg_5_epochs = []  
-
-num_epochs = 30
 best_val_acc_avg = 0
 
+num_epochs = 30
 for epoch in range(num_epochs):
     print(f"Now Training Epoch {epoch+1}", flush=True)
     start = time.time()
@@ -117,12 +112,15 @@ for epoch in range(num_epochs):
     val_losses.append(val_loss / len(val_dataloader))
     val_accuracies.append(val_accuracy / len(val_dataloader))
 
+    # Update Learning Rate
+    scheduler.step()
+
     # Calculate the moving average over the last 5 epochs for validation accuracy
     if len(val_accuracies) >= 5:
         mean_val_acc = np.mean(val_accuracies[-5:])
         val_acc_avg_5_epochs.append(mean_val_acc)
     else:
-        val_acc_avg_5_epochs.append(val_accuracies[-1])  # Use the current accuracy if <5 epochs have completed
+        val_acc_avg_5_epochs.append(val_accuracies[-1])
 
     end = time.time()
 
@@ -142,4 +140,4 @@ plt.title('Training and Validation Losses')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('training.png')
+plt.savefig('figs/training.png')
