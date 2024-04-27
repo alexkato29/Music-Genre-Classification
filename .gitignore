@@ -1,6 +1,7 @@
 # Project Specific
 test.py
-ProtoPNet/
+saved_models/
+best_models/
 
 # Python Files
 venv/
