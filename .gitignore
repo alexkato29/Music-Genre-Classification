@@ -10,3 +10,4 @@ __pycache__/
 # Slurm Related Files
 logs/
 script.sh
+slurm*.out
