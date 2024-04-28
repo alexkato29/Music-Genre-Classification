@@ -1,0 +1,72 @@
+/var/lib/slurm/slurmd/job2198291/slurm_script: line 11: source: /home/users/aak61/music_genre_classification/venv: is a directory
+Number of GPUs being used: 4
+Now Training Epoch 1
+	Epoch 1/30, Train Loss: 1.5017, Val Loss: 2.9262, Val Acc: 28.12%, Moving Avg Val Acc: 28.12%, Time: 228.61s
+Now Training Epoch 2
+	Epoch 2/30, Train Loss: 0.5003, Val Loss: 1.5573, Val Acc: 50.75%, Moving Avg Val Acc: 50.75%, Time: 122.25s
+Now Training Epoch 3
+	Epoch 3/30, Train Loss: 0.1770, Val Loss: 1.6043, Val Acc: 45.62%, Moving Avg Val Acc: 45.62%, Time: 118.01s
+Now Training Epoch 4
+	Epoch 4/30, Train Loss: 0.0823, Val Loss: 1.8932, Val Acc: 45.12%, Moving Avg Val Acc: 45.12%, Time: 113.95s
+Now Training Epoch 5
+	Epoch 5/30, Train Loss: 0.0462, Val Loss: 1.8143, Val Acc: 41.25%, Moving Avg Val Acc: 42.17%, Time: 119.71s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 6
+	Epoch 6/30, Train Loss: 0.0284, Val Loss: 1.6187, Val Acc: 51.25%, Moving Avg Val Acc: 46.80%, Time: 115.54s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 7
+	Epoch 7/30, Train Loss: 0.0205, Val Loss: 1.7958, Val Acc: 50.75%, Moving Avg Val Acc: 46.80%, Time: 113.96s
+Now Training Epoch 8
+	Epoch 8/30, Train Loss: 0.0176, Val Loss: 1.6578, Val Acc: 53.25%, Moving Avg Val Acc: 48.33%, Time: 113.39s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 9
+	Epoch 9/30, Train Loss: 0.0113, Val Loss: 1.6432, Val Acc: 50.62%, Moving Avg Val Acc: 49.42%, Time: 113.54s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 10
+	Epoch 10/30, Train Loss: 0.0159, Val Loss: 1.6961, Val Acc: 51.88%, Moving Avg Val Acc: 51.55%, Time: 113.69s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 11
+	Epoch 11/30, Train Loss: 0.0239, Val Loss: 1.7984, Val Acc: 52.00%, Moving Avg Val Acc: 51.70%, Time: 113.83s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 12
+	Epoch 12/30, Train Loss: 0.0282, Val Loss: 1.6809, Val Acc: 45.62%, Moving Avg Val Acc: 50.67%, Time: 115.54s
+Now Training Epoch 13
+	Epoch 13/30, Train Loss: 0.0121, Val Loss: 1.5983, Val Acc: 50.62%, Moving Avg Val Acc: 50.15%, Time: 121.23s
+Now Training Epoch 14
+	Epoch 14/30, Train Loss: 0.0093, Val Loss: 1.6846, Val Acc: 52.62%, Moving Avg Val Acc: 50.55%, Time: 121.76s
+Now Training Epoch 15
+	Epoch 15/30, Train Loss: 0.0050, Val Loss: 1.8227, Val Acc: 50.00%, Moving Avg Val Acc: 50.17%, Time: 117.59s
+Now Training Epoch 16
+	Epoch 16/30, Train Loss: 0.0089, Val Loss: 1.6891, Val Acc: 51.88%, Moving Avg Val Acc: 50.15%, Time: 116.48s
+Now Training Epoch 17
+	Epoch 17/30, Train Loss: 0.0077, Val Loss: 1.6993, Val Acc: 50.62%, Moving Avg Val Acc: 51.15%, Time: 113.25s
+Now Training Epoch 18
+	Epoch 18/30, Train Loss: 0.0064, Val Loss: 1.6327, Val Acc: 55.12%, Moving Avg Val Acc: 52.05%, Time: 112.80s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 19
+	Epoch 19/30, Train Loss: 0.0063, Val Loss: 1.8199, Val Acc: 51.25%, Moving Avg Val Acc: 51.77%, Time: 113.11s
+Now Training Epoch 20
+	Epoch 20/30, Train Loss: 0.0046, Val Loss: 1.7215, Val Acc: 53.88%, Moving Avg Val Acc: 52.55%, Time: 113.26s
+Saved new best model based on moving average validation accuracy
+Now Training Epoch 21
+	Epoch 21/30, Train Loss: 0.0043, Val Loss: 1.7005, Val Acc: 48.75%, Moving Avg Val Acc: 51.92%, Time: 113.60s
+Now Training Epoch 22
+	Epoch 22/30, Train Loss: 0.0051, Val Loss: 1.7491, Val Acc: 50.00%, Moving Avg Val Acc: 51.80%, Time: 113.62s
+Now Training Epoch 23
+	Epoch 23/30, Train Loss: 0.0044, Val Loss: 1.8028, Val Acc: 51.25%, Moving Avg Val Acc: 51.02%, Time: 113.36s
+Now Training Epoch 24
+	Epoch 24/30, Train Loss: 0.0037, Val Loss: 1.7037, Val Acc: 50.62%, Moving Avg Val Acc: 50.90%, Time: 113.72s
+Now Training Epoch 25
+	Epoch 25/30, Train Loss: 0.0041, Val Loss: 1.7292, Val Acc: 49.38%, Moving Avg Val Acc: 50.00%, Time: 113.78s
+Now Training Epoch 26
+	Epoch 26/30, Train Loss: 0.0041, Val Loss: 1.7815, Val Acc: 50.62%, Moving Avg Val Acc: 50.38%, Time: 113.02s
+Now Training Epoch 27
+	Epoch 27/30, Train Loss: 0.0038, Val Loss: 1.6950, Val Acc: 51.88%, Moving Avg Val Acc: 50.75%, Time: 112.80s
+Now Training Epoch 28
+	Epoch 28/30, Train Loss: 0.0040, Val Loss: 1.9179, Val Acc: 50.62%, Moving Avg Val Acc: 50.62%, Time: 112.75s
+Now Training Epoch 29
+	Epoch 29/30, Train Loss: 0.0035, Val Loss: 1.8030, Val Acc: 51.88%, Moving Avg Val Acc: 50.88%, Time: 112.74s
+Now Training Epoch 30
+	Epoch 30/30, Train Loss: 0.0027, Val Loss: 1.7912, Val Acc: 51.25%, Moving Avg Val Acc: 51.25%, Time: 113.00s
+Model Loaded from Training Successfully
+Accuracy: 0.5638
