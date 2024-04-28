@@ -3,7 +3,7 @@ EXPERIMENT_RUN: 001
 MODEL:
     PROTOTYPE_DISTANCE_FUNCTION: "cosine"
     PROTOTYPE_ACTIVATION_FUNCTION: "linear"
-    BACKBONE: "pretrained_backbones/best_backbone_427.pth"
+    BACKBONE: "pretrained_backbones/best_backbone_256.pth"
 
 DATASET:
     NAME: "audio-waveforms"
@@ -26,5 +26,7 @@ OUTPUT:
     IMG_DIR: "saved_models/prototypes"
 
 OPTIM:
+    NUM_TRAIN_EPOCHS: 11
+    NUM_PUSH_EPOCHS: 4
     PUSH_START: 2
     PUSH_EPOCHS: [2, 5, 10]

@@ -11,7 +11,9 @@ from model.utils import get_optimizers
 
 import train.train_and_test as tnt
 
-import prototype.push as push       
+import prototype.push as push 
+
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -32,7 +34,6 @@ def main():
 
     # Create Logger Initially
     log, logclose = create_logger(log_filename=os.path.join(cfg.OUTPUT.MODEL_DIR, 'train.log'))
-    # log, logclose = create_logger(log_filename=os.path.join("stuff", 'train.log'))
     log(str(cfg))
     
     # Get the dataset for training
@@ -55,25 +56,30 @@ def main():
         'l1': cfg.OPTIM.COEFS.L1
     }
 
+    # Save for a graph
+    train_accs = []
+    val_accs = []
+
     for epoch in range(cfg.OPTIM.NUM_TRAIN_EPOCHS):
         log('epoch: \t{0}'.format(epoch))
         
         # Warm up and Training Epochs
         if epoch < cfg.OPTIM.NUM_WARM_EPOCHS:
             tnt.warm_only(model=ppnet_multi, log=log)
-            _ = tnt.train(model=ppnet_multi, dataloader=train_loader, optimizer=warm_optimizer,
+            accu = tnt.train(model=ppnet_multi, dataloader=train_loader, optimizer=warm_optimizer,
                         class_specific=class_specific, coefs=coefs, log=log)
+            train_accs.append(accu)
         else:
             tnt.joint(model=ppnet_multi, log=log)
             joint_lr_scheduler.step()
-            _ = tnt.train(model=ppnet_multi, dataloader=train_loader, optimizer=joint_optimizer,
+            accu = tnt.train(model=ppnet_multi, dataloader=train_loader, optimizer=joint_optimizer,
                         class_specific=class_specific, coefs=coefs, log=log)
+            train_accs.append(accu)
 
-        # Testing Epochs
+        # Validation Epochs
         accu = tnt.test(model=ppnet_multi, dataloader=val_loader,
                         class_specific=class_specific, log=log)
-        save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + 'nopush', accu=accu,
-                                    target_accu=0.70, log=log)
+        val_accs.append(accu)
 
     # Pushing Epochs
         print(os.path.join(cfg.OUTPUT.IMG_DIR, str(epoch) + '_' + 'push_weights.pth'))
@@ -96,25 +102,30 @@ def main():
             
             accu = tnt.test(model=ppnet_multi, dataloader=val_loader,
                             class_specific=class_specific, log=log)
-            save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + 'push', accu=accu,
-                                        target_accu=0.5, log=log)
+            save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + '_early_push', accu=accu,
+                                        target_accu=0.56, log=log)
 
             # Optimize last layer
             tnt.last_only(model=ppnet_multi, log=log)
-            for i in range(20):
-            # for i in range(1):
+            for i in range(cfg.OPTIM.NUM_PUSH_EPOCHS):
                 log('iteration: \t{0}'.format(i))
                 _ = tnt.train(model=ppnet_multi, dataloader=train_loader, optimizer=last_layer_optimizer,
                             class_specific=class_specific, coefs=coefs, log=log)
                 accu = tnt.test(model=ppnet_multi, dataloader=val_loader,
                                 class_specific=class_specific, log=log)
-                save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + '_' + 'push', accu=accu, target_accu=0.70, log=log)
-
-            # Print the weights of the last layer
-            # Save the weigts of the last layer
-            torch.save(ppnet.last_layer.state_dict(), os.path.join(cfg.OUTPUT.IMG_DIR, str(epoch) + '_push_weights.pth'))
+                save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + '_push', accu=accu, 
+                                       target_accu=0.56, log=log)
 
     logclose()
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(train_accs, label='Training Acc')
+    plt.plot(val_accs, label='Validation Acc')
+    plt.title('Training and Validation Accuracies')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.savefig('training.png')
         
 
 
