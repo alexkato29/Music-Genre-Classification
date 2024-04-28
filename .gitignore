@@ -1,3 +1,6 @@
+# General
+.DS_Store
+
 # Project Specific
 test.py
 saved_models/
@@ -12,4 +15,5 @@ logs/
 script.sh
 train.sh
 testing.sh
+cnn.sh
 slurm*.out
