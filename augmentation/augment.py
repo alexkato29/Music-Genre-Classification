@@ -1,44 +1,75 @@
 import os
+import random
 import numpy as np
 
 import librosa
+import torchaudio
 import soundfile as sf
+from scipy.signal import butter, sosfilt
 
 GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
 
-def pitch(audio_path, save_path, file, n_semitones):
+def apply_polarity_inversion(waveform):
+    return -waveform
+
+def apply_noise(waveform, snr_min=7, snr_max=12):
+    snr = random.uniform(snr_min, snr_max)
+    noise_amp = np.std(waveform) / snr
+    noise = np.random.normal(loc=0, scale=1, size=waveform.shape) * noise_amp
+    return waveform + noise
+
+def apply_reverb(waveform, sample_rate):
+    # Using torchaudio's convolutional reverb
+    # Note: This requires an impulse response file
+    ir_path = 'path_to_impulse_response.wav'
+    ir_waveform, ir_sr = torchaudio.load(ir_path)
+    if ir_sr != sample_rate:
+        ir_waveform = torchaudio.transforms.Resample(orig_freq=ir_sr, new_freq=sample_rate)(ir_waveform)
+    reverb = torchaudio.transforms.Convolution(reverb=ir_waveform[0:1])
+    return reverb(waveform)
+
+def apply_pitch_shift(waveform, sample_rate, n_steps):
+    shifted = librosa.effects.pitch_shift(waveform, sr=sample_rate, n_steps=n_steps)
+    return shifted
+
+def apply_high_low_pass(waveform, sample_rate, high=True):
+    cutoff = 2000  # cutoff frequency in Hz
+    order = 2  # filter order
+    sos = butter(order, cutoff, 'hp' if high else 'lp', fs=sample_rate, output='sos')
+    filtered = sosfilt(sos, waveform)
+    return filtered
+
+def normalize_waveform(waveform):
+    max_amplitude = np.max(np.abs(waveform))
+    return waveform / max_amplitude
+
+def get_augmentations(waveform, sample_rate):
+    # Probability aug = 0.9475
+    # E[num copies of orig song] = 1.0525
+    if random.random() < 0.5:
+        waveform = apply_polarity_inversion(waveform)
+    if random.random() < 0.7:
+        waveform = apply_noise(waveform)
+    if random.random() < 0.5:
+        waveform = apply_high_low_pass(waveform, sample_rate, high=random.choice([True, False]))
+    if random.random() < 0.3:
+        semitones = random.randint(-4, 4)
+        waveform = apply_pitch_shift(waveform, sample_rate, n_steps=semitones)
+
+    return normalize_waveform(waveform)
+
+def random_augment(audio_path, save_path, file, n_times):
     y, sr = librosa.load(audio_path, sr=None) 
 
-    # Go +/- semitones
-    for semitone in range(-n_semitones, n_semitones + 1):
-        # We copy the original files over, so no need to recopy
-        if semitone == 0:
-            continue
+    # Save the original once, guaranteed
+    aug_file_path = os.path.join(save_path, f"orig_{file}")
+    sf.write(aug_file_path, y, sr)
 
-        # Named up/down accordingly
-        if semitone > 0:
-            aug_file_path = os.path.join(save_path, f"up_{semitone}_{file}")
-        else:
-            aug_file_path = os.path.join(save_path, f"down_{abs(semitone)}_{file}")
-
-        y_shifted = librosa.effects.pitch_shift(y, sr=sr, n_steps=semitone)
-        sf.write(aug_file_path, y_shifted, sr)
-
-
-def add_white_noise(audio_path, save_path, file, noise_level):
-    y, sr = librosa.load(audio_path, sr=None)
-    noise = np.random.randn(len(y)) * noise_level
-    y_noisy = y + noise
-    y_noisy = np.clip(y_noisy, -1, 1)
-    noisy_file_path = os.path.join(save_path, f"noisy_{file}")
-    sf.write(noisy_file_path, y_noisy, sr)
-
-def quiet(audio_path, save_path, file, quiet_factor):
-    y, sr = librosa.load(audio_path, sr=None)
-    y_quiet = y * quiet_factor
-    noisy_file_path = os.path.join(save_path, f"quiet_{file}")
-    sf.write(noisy_file_path, y_quiet, sr)
-
+    # Then do modifications
+    for i in range(n_times):
+        y_aug = get_augmentations(y, 22050)
+        aug_file_path = os.path.join(save_path, f"aug{i}_{file}")
+        sf.write(aug_file_path, y_aug, sr)
 
 
 def augment_training_data(train_dir, aug_dir):
@@ -50,13 +81,12 @@ def augment_training_data(train_dir, aug_dir):
         for file in os.listdir(genre_dir):
             if file.endswith('.wav'):
                 file_path = os.path.join(genre_dir, file)
-                pitch(file_path, aug_genre_dir, file, n_semitones=2)
-                add_white_noise(file_path, aug_genre_dir, file, noise_level=0.005)
-                quiet(file_path, aug_genre_dir, file, quiet_factor=0.4)
-        print(f"{genre} genre complete")
+                random_augment(file_path, aug_genre_dir, file, n_times=9)
+        print(f"{genre} genre complete", flush=True)
+
 
 # Example usage
 DATA_PATH = '/usr/xtmp/aak61/music-genre/split_genres/push/'
-AUG_PATH = '/usr/xtmp/aak61/music-genre/split_genres/train_augmented/'
+AUG_PATH = '/usr/xtmp/aak61/music-genre/split_genres/train_augmented_2/'
 augment_training_data(DATA_PATH, AUG_PATH)
 
