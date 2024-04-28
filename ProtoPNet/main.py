@@ -33,14 +33,23 @@ def main():
         mkdir(cfg.OUTPUT.IMG_DIR)
 
     # Create Logger Initially
-    log, logclose = create_logger(log_filename=os.path.join(cfg.OUTPUT.MODEL_DIR, 'train.log'))
+    log, logclose = create_logger(log_filename=os.path.join(cfg.OUTPUT.MODEL_DIR, '427_continued_training.log'))
     log(str(cfg))
+
+    # Print GPUs (multiple GPU clusters at once?)
+    if torch.cuda.is_available():
+        num_gpus = torch.cuda.device_count()
+        print(f"Number of GPUs being used: {num_gpus}", flush=True)
+    else:
+        print("CUDA is not available. No GPUs are being used.", flush=True)
     
     # Get the dataset for training
     train_loader, push_loader, val_loader, _ = get_dataset(cfg)
 
     # Construct and parallel the model
-    ppnet = construct_ppnet(cfg)
+    # ppnet = construct_ppnet(cfg)
+    target_acc = 0.7
+    ppnet = torch.load(cfg.OUTPUT.MODEL_DIR + "/427backbone_5_push0.6107.pth")  # This continues training the existing model
     ppnet_multi = torch.nn.DataParallel(ppnet) 
     class_specific = True
     
@@ -102,8 +111,6 @@ def main():
             
             accu = tnt.test(model=ppnet_multi, dataloader=val_loader,
                             class_specific=class_specific, log=log)
-            save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + '_early_push', accu=accu,
-                                        target_accu=0.56, log=log)
 
             # Optimize last layer
             tnt.last_only(model=ppnet_multi, log=log)
@@ -113,8 +120,8 @@ def main():
                             class_specific=class_specific, coefs=coefs, log=log)
                 accu = tnt.test(model=ppnet_multi, dataloader=val_loader,
                                 class_specific=class_specific, log=log)
-                save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + '_push', accu=accu, 
-                                       target_accu=0.56, log=log)
+                save_model_w_condition(model=ppnet, model_dir=cfg.OUTPUT.MODEL_DIR, model_name=str(epoch) + '_push_427_', accu=accu, 
+                                       target_accu=target_acc, log=log)
 
     logclose()
 

@@ -23,7 +23,7 @@ DATASET:
 OUTPUT:
     NO_SAVE: False
     MODEL_DIR: "saved_models/prototype_model"
-    IMG_DIR: "saved_models/prototypes"
+    IMG_DIR: "saved_models/427prototypes"
 
 OPTIM:
     NUM_TRAIN_EPOCHS: 11

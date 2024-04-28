@@ -12,9 +12,11 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 
 # Print GPUs (multiple GPU clusters at once?)
 if torch.cuda.is_available():
+    device = "cuda"
     num_gpus = torch.cuda.device_count()
     print(f"Number of GPUs being used: {num_gpus}", flush=True)
 else:
+    device = "cpu"
     print("CUDA is not available. No GPUs are being used.", flush=True)
 
 cfg = get_cfg_defaults()
@@ -39,7 +41,7 @@ log, logclose = create_logger(log_filename=os.path.join(cfg.OUTPUT.MODEL_DIR, 't
 _, push_loader, val_loader, test_dataset = get_dataset(cfg)
 
 # Load model from memory
-ppnet = torch.load(cfg.OUTPUT.MODEL_DIR + "/2_push0.5973.pth")
+ppnet = torch.load(cfg.OUTPUT.MODEL_DIR + "/10_push0.6376.pth")
 
 
 # Evaluating
@@ -49,8 +51,8 @@ y_pred = []
 
 with torch.no_grad():
     for wav, label in val_loader:
-        wav = wav.cuda()
-        label = label.cuda()
+        wav = wav.to(device)
+        label = label.to(device)
 
         logits, min_distances = ppnet(wav)  # Corrected this line
         _, pred = torch.max(logits, 1)
