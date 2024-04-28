@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# TODO - Add pruning
 class PPNet(nn.Module):
     def __init__(self, features, img_size, prototype_shape,
                  proto_layer_rf_info, num_classes, init_weights=True,
@@ -20,10 +19,6 @@ class PPNet(nn.Module):
         self.num_classes = num_classes
         self.epsilon = 1e-4
         self.fix_prototypes = fix_prototypes
-
-        if self.fix_prototypes:
-            if self.prototype_shape[3] != 1:
-                raise NotImplementedError("Fix_prototypes only supported for 1x1 prototypes")
             
         self.prototype_distance_function = prototype_distance_function
         self.prototype_activation_function = prototype_activation_function # 'log' or 'linear'
@@ -32,7 +27,6 @@ class PPNet(nn.Module):
         assert(not (prototype_distance_function == 'cosine' and prototype_activation_function != "linear"))
 
         assert(self.num_prototypes % self.num_classes == 0)
-        # a onehot indication matrix for each prototype's class identity
         
         self.prototype_class_identity = torch.zeros(self.num_prototypes, self.num_classes)
 
@@ -204,33 +198,6 @@ class PPNet(nn.Module):
         distances = -1 * similarities
 
         return conv_output, distances
-
-    def prune_prototypes(self, prototypes_to_prune):
-        '''
-        prototypes_to_prune: a list of indices each in
-        [0, current number of prototypes - 1] that indicates the prototypes to
-        be removed
-        '''
-        prototypes_to_keep = list(set(range(self.num_prototypes)) - set(prototypes_to_prune))
-
-        self.prototype_vectors = nn.Parameter(self.prototype_vectors.data[prototypes_to_keep, ...],
-                                              requires_grad=True)
-
-        self.prototype_shape = list(self.prototype_vectors.size())
-        self.num_prototypes = self.prototype_shape[0]
-
-        # changing self.last_layer in place
-        # changing in_features and out_features make sure the numbers are consistent
-        self.last_layer.in_features = self.num_prototypes
-        self.last_layer.out_features = self.num_classes
-        self.last_layer.weight.data = self.last_layer.weight.data[:, prototypes_to_keep]
-
-        # self.ones is nn.Parameter
-        self.ones = nn.Parameter(self.ones.data[prototypes_to_keep, ...],
-                                 requires_grad=False)
-        # self.prototype_class_identity is torch tensor
-        # so it does not need .data access for value update
-        self.prototype_class_identity = self.prototype_class_identity[prototypes_to_keep, :]
 
     def __repr__(self):
         rep = (

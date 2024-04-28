@@ -227,7 +227,7 @@ def update_prototypes_on_batch(search_batch_input,
             rf_img_j = original_img_j[0,low:high]
 
             GENRES = ['blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop', 'reggae', 'rock']
-            save_path = os.path.join("saved_models/prototypes", f"prototype_{GENRES[int(j / 10)]}_{j}.wav")
+            save_path = os.path.join("saved_models/prototypes", f"prototype_{GENRES[int(j / 10)]}_{j % 10}.wav")
             sf.write(save_path, rf_img_j, 22050)
 
     if class_specific:
