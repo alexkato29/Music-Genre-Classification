@@ -6,7 +6,7 @@
 #SBATCH --mem=160gb                  # Job memory request
 #SBATCH --time=15:00:00                # Time limit hrs:min:sec
 #SBATCH --partition=compsci-gpu
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:1
 
 source /home/users/aak61/music_genre_classification/venv
 python3 model_testing.py --configs="configs/gtzan.yaml"
