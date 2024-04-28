@@ -7,4 +7,5 @@ This was trained on the augmented data and has accuracies of ~56% on validation.
 I don't see any sign that there was train/val leakage, and this model is probably ok.
 
 best_backbone_256:
-This was trained on the new augmentations: pitch shift, noise, high/low pass filter, polarity
+This was trained on the new augmentations: pitch shift, noise, high/low pass filter, polarity inversion
+Does ok at ~56% accuracy on validation. This model only has one FC layer, so might serve as a better prototype backbone.
