@@ -1,5 +1,6 @@
 import argparse, os
 import torch
+import numpy as np
 from utils.util import create_logger
 from os import mkdir
 
@@ -38,10 +39,10 @@ if not os.path.exists(cfg.OUTPUT.IMG_DIR):
 log, logclose = create_logger(log_filename=os.path.join(cfg.OUTPUT.MODEL_DIR, 'train.log'))
 
 # Get the datasets for exploring
-_, push_loader, val_loader, test_dataset = get_dataset(cfg)
+_, push_loader, val_loader, test_loader = get_dataset(cfg)
 
 # Load model from memory
-ppnet = torch.load(cfg.OUTPUT.MODEL_DIR + "/10_push0.6376.pth")
+ppnet = torch.load(cfg.OUTPUT.MODEL_DIR + "/10_push0.6577.pth")
 
 
 # Evaluating
@@ -50,7 +51,7 @@ y_true = []
 y_pred = []
 
 with torch.no_grad():
-    for wav, label in val_loader:
+    for wav, label in test_loader:
         wav = wav.to(device)
         label = label.to(device)
 
@@ -64,6 +65,10 @@ with torch.no_grad():
 cm = confusion_matrix(y_true, y_pred)
 accuracy = accuracy_score(y_true, y_pred)
 
+# Sensitivity and Specificity
+sensitivity = np.diag(cm) / np.sum(cm, axis=1)
+specificity = np.diag(cm) / np.sum(cm, axis=0)
+
 # Plot confusion matrix
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm, annot=True, fmt='d', xticklabels=cfg.DATASET.WAVEFORM.GENRES, yticklabels=cfg.DATASET.WAVEFORM.GENRES, cmap='YlGnBu')
@@ -73,3 +78,7 @@ plt.ylabel('True Labels')
 plt.savefig('confusion_matrix.png')
 
 print('Accuracy: %.4f' % accuracy)
+
+# Print sensitivity and specificity for each class
+for idx, genre in enumerate(cfg.DATASET.WAVEFORM.GENRES):
+    print(f"{genre} - Sensitivity: {sensitivity[idx]:.4f}, Specificity: {specificity[idx]:.4f}")
