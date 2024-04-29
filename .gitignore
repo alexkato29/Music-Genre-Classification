@@ -3,7 +3,9 @@
 
 # Project Specific
 test.py
-saved_models/
+427prototypes/
+prototype_model/
+prototypes/
 best_models/
 
 # Python Files
